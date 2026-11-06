@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="srv-guide：住在这台服务器上的导游 agent。一个仿 Claude Code 的网页终端，支持斜杠命令、skill、只读 shell，实时展示工具调用；也能基于网站内容聊项目和博客，每轮回答都列出依据。">
+  <meta name="color-scheme" content="dark">
+  <title>srv-guide · 服务器导游 agent</title>
+  <link rel="icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/guide/guide.css?v=2">
+</head>
+<body>
+  <div class="window">
+    <header class="titlebar">
+      <span class="lights" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="title" id="title">visitor@srv-guide: /</span>
+      <a class="back" href="/lab/">← Lab</a>
+    </header>
+
+    <main class="screen" id="screen">
+      <div id="log" class="log" role="log" aria-live="polite"></div>
+
+      <div class="spinner" id="spinner" hidden>
+        <span class="glyph" id="spinner-glyph">✻</span>
+        <span class="verb" id="spinner-verb">思考中…</span>
+        <span class="meta" id="spinner-meta"></span>
+      </div>
+
+      <div class="composer" id="composer">
+        <div class="palette" id="palette" role="listbox" aria-label="命令补全" hidden></div>
+        <div class="inputbox" id="inputbox">
+          <span class="prompt" id="prompt" aria-hidden="true">&gt;</span>
+          <textarea id="input" rows="1" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="输入问题、/命令 或 !shell 命令" placeholder="试试“这台服务器跑了哪些服务？”"></textarea>
+        </div>
+        <div class="statusbar">
+          <span id="hint">? 快捷键 · / 命令 · ! shell · @ 文件</span>
+          <span id="status"></span>
+        </div>
+        <div class="chips" id="chips">
+          <button type="button" data-run="/tour">/tour</button>
+          <button type="button" data-run="/explain 证据优先">/explain 证据优先</button>
+          <button type="button" data-run="主人做过哪些研究项目？">主人做过哪些研究项目？</button>
+          <button type="button" data-run="这台服务器跑了哪些服务？">这台服务器跑了哪些服务？</button>
+          <button type="button" data-run="/ontology">/ontology</button>
+          <button type="button" data-run="/health-check">/health-check</button>
+        </div>
+      </div>
+    </main>
+  </div>
+  <noscript><p class="noscript">这个终端需要 JavaScript。你也可以直接逛 <a href="/">主页</a>。</p></noscript>
+  <script src="/guide/guide.js?v=3" defer></script>
+</body>
+</html>

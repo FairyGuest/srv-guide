@@ -1,0 +1,1470 @@
+{
+  "version": "0.2",
+  "title": "srv-guide 世界模型",
+  "description": "导游眼中的这台服务器与这个网站：有哪些对象、它们属于哪一类、彼此是什么关系、每条约束由谁守住。手写的设定 + 博客笔记的图谱 + 运行时自动生成的工具、skill 和页面。",
+  "principles": [
+    "本体描述对象与关系；动作契约描述工具的输入、效果和读取范围；程序校验与权限控制决定哪些操作真的能执行。三者分开写。",
+    "每条边都标注来源：设定（这个文件）、笔记（博客图谱的属性或双链）、运行时（从代码和已发布页面生成）。",
+    "提及不等于阐释，阐释不等于验证。起步笔记和路线图是计划，不是成果。",
+    "一条边界只写在提示词里，叫软约束；有程序或配置守住，才叫硬约束。",
+    "结构化属性（unit、port、path、host）是给程序比对的：部署时拿它和 release.sh、systemd 单元、Nginx 配置对账，对不上就是漂移。"
+  ],
+  "classes": {
+    "Thing": {
+      "label": "事物"
+    },
+    "Agent": {
+      "label": "行动者",
+      "parent": "Thing",
+      "note": "能提出目标或采取行动的主体"
+    },
+    "Person": {
+      "label": "人",
+      "parent": "Agent"
+    },
+    "SoftwareAgent": {
+      "label": "软件 Agent",
+      "parent": "Agent"
+    },
+    "Artifact": {
+      "label": "人造物",
+      "parent": "Thing"
+    },
+    "Machine": {
+      "label": "机器",
+      "parent": "Artifact"
+    },
+    "Service": {
+      "label": "服务",
+      "parent": "Artifact",
+      "note": "一个长期运行的进程或定时任务"
+    },
+    "Endpoint": {
+      "label": "端点",
+      "parent": "Artifact",
+      "note": "监听地址:端口，或一个 URL 路径"
+    },
+    "Page": {
+      "label": "页面",
+      "parent": "Artifact",
+      "note": "已发布到网站的公开页面"
+    },
+    "Mechanism": {
+      "label": "机制",
+      "parent": "Artifact",
+      "note": "真正执行约束的代码或配置"
+    },
+    "Capability": {
+      "label": "能力",
+      "parent": "Artifact"
+    },
+    "Tool": {
+      "label": "工具",
+      "parent": "Capability",
+      "note": "带动作契约：效果、读取范围、由什么守住"
+    },
+    "Skill": {
+      "label": "Skill",
+      "parent": "Capability",
+      "note": "一段可加载的工作说明"
+    },
+    "Boundary": {
+      "label": "边界",
+      "parent": "Thing",
+      "note": "一条约束；关键是看它 enforced_by 什么"
+    },
+    "Project": {
+      "label": "研究项目",
+      "parent": "Thing"
+    },
+    "KnowledgeNode": {
+      "label": "知识节点",
+      "parent": "Thing",
+      "note": "来自博客「Agent 学习本体」"
+    },
+    "Concept": {
+      "label": "概念",
+      "parent": "KnowledgeNode"
+    },
+    "Pattern": {
+      "label": "设计模式",
+      "parent": "KnowledgeNode"
+    },
+    "Practice": {
+      "label": "实践",
+      "parent": "KnowledgeNode"
+    },
+    "Article": {
+      "label": "文章",
+      "parent": "KnowledgeNode"
+    },
+    "DataStore": {
+      "label": "数据目录",
+      "parent": "Artifact",
+      "note": "服务落盘的目录；systemd 的 ReadWritePaths 必须和它的「写入」关系一致"
+    },
+    "ExternalService": {
+      "label": "外部服务",
+      "parent": "Artifact",
+      "note": "不在这台机器上、由服务主动调用的第三方接口"
+    },
+    "Pipeline": {
+      "label": "流水线",
+      "parent": "Artifact",
+      "note": "把代码变成线上版本的自动化流程"
+    }
+  },
+  "relations": {
+    "runs_on": {
+      "label": "运行于",
+      "domain": [
+        "Service",
+        "SoftwareAgent",
+        "Pipeline"
+      ],
+      "range": [
+        "Machine"
+      ]
+    },
+    "implemented_by": {
+      "label": "由…实现",
+      "domain": [
+        "SoftwareAgent"
+      ],
+      "range": [
+        "Service"
+      ]
+    },
+    "listens_on": {
+      "label": "监听",
+      "domain": [
+        "Service"
+      ],
+      "range": [
+        "Endpoint"
+      ]
+    },
+    "proxies_to": {
+      "label": "转发到",
+      "domain": [
+        "Endpoint"
+      ],
+      "range": [
+        "Service"
+      ]
+    },
+    "serves": {
+      "label": "提供",
+      "domain": [
+        "Service"
+      ],
+      "range": [
+        "Page",
+        "Endpoint"
+      ]
+    },
+    "maintains": {
+      "label": "维护",
+      "domain": [
+        "Person"
+      ],
+      "range": [
+        "Thing"
+      ]
+    },
+    "works_on": {
+      "label": "研究",
+      "domain": [
+        "Person"
+      ],
+      "range": [
+        "Project"
+      ]
+    },
+    "has_tool": {
+      "label": "拥有工具",
+      "domain": [
+        "SoftwareAgent"
+      ],
+      "range": [
+        "Tool"
+      ]
+    },
+    "has_skill": {
+      "label": "会用 skill",
+      "domain": [
+        "SoftwareAgent"
+      ],
+      "range": [
+        "Skill"
+      ]
+    },
+    "observes": {
+      "label": "可实测",
+      "domain": [
+        "Tool"
+      ],
+      "range": [
+        "Thing"
+      ],
+      "meaning": "这个工具能现场读取该对象的状态；没被实测的状态只能算资料里的说法"
+    },
+    "reads": {
+      "label": "读取",
+      "domain": [
+        "Tool"
+      ],
+      "range": [
+        "Thing"
+      ]
+    },
+    "constrained_by": {
+      "label": "受约束于",
+      "domain": [
+        "Thing"
+      ],
+      "range": [
+        "Boundary"
+      ]
+    },
+    "enforced_by": {
+      "label": "由…守住",
+      "domain": [
+        "Boundary"
+      ],
+      "range": [
+        "Mechanism"
+      ],
+      "meaning": "约束由哪段程序或配置执行；只由提示词守住的是软约束"
+    },
+    "published_as": {
+      "label": "发布为",
+      "domain": [
+        "KnowledgeNode",
+        "Project"
+      ],
+      "range": [
+        "Page"
+      ]
+    },
+    "describes": {
+      "label": "介绍",
+      "domain": [
+        "Page"
+      ],
+      "range": [
+        "Thing"
+      ]
+    },
+    "embodies": {
+      "label": "落地了",
+      "domain": [
+        "SoftwareAgent"
+      ],
+      "range": [
+        "KnowledgeNode"
+      ],
+      "meaning": "笔记里的想法在这个 agent 上有可检查的实现（具体看 note）"
+    },
+    "uses": {
+      "label": "使用",
+      "domain": [
+        "KnowledgeNode"
+      ],
+      "range": [
+        "KnowledgeNode"
+      ]
+    },
+    "depends_on": {
+      "label": "依赖",
+      "domain": [
+        "KnowledgeNode"
+      ],
+      "range": [
+        "KnowledgeNode"
+      ]
+    },
+    "explains": {
+      "label": "阐释",
+      "domain": [
+        "KnowledgeNode"
+      ],
+      "range": [
+        "KnowledgeNode"
+      ]
+    },
+    "applies": {
+      "label": "实践",
+      "domain": [
+        "KnowledgeNode"
+      ],
+      "range": [
+        "KnowledgeNode"
+      ]
+    },
+    "checks": {
+      "label": "检验",
+      "domain": [
+        "KnowledgeNode"
+      ],
+      "range": [
+        "KnowledgeNode"
+      ]
+    },
+    "related": {
+      "label": "相关",
+      "domain": [
+        "KnowledgeNode"
+      ],
+      "range": [
+        "KnowledgeNode"
+      ]
+    },
+    "mentions": {
+      "label": "提及",
+      "domain": [
+        "KnowledgeNode"
+      ],
+      "range": [
+        "KnowledgeNode"
+      ],
+      "meaning": "正文里出现过双链；不代表阐释过，更不代表验证过"
+    },
+    "visits": {
+      "label": "访问",
+      "domain": [
+        "Person"
+      ],
+      "range": [
+        "Endpoint"
+      ],
+      "meaning": "人从哪个入口进来"
+    },
+    "triggers": {
+      "label": "触发",
+      "domain": [
+        "Service"
+      ],
+      "range": [
+        "Pipeline"
+      ]
+    },
+    "deploys": {
+      "label": "部署",
+      "domain": [
+        "Pipeline"
+      ],
+      "range": [
+        "Service"
+      ],
+      "meaning": "流水线会同步它的代码并重启它"
+    },
+    "writes": {
+      "label": "写入",
+      "domain": [
+        "Service",
+        "Pipeline"
+      ],
+      "range": [
+        "DataStore"
+      ],
+      "meaning": "有写权限并且真的会写；对应 systemd 的 ReadWritePaths"
+    },
+    "reads_data": {
+      "label": "读取数据",
+      "domain": [
+        "Service"
+      ],
+      "range": [
+        "DataStore"
+      ]
+    },
+    "calls": {
+      "label": "调用",
+      "domain": [
+        "Service"
+      ],
+      "range": [
+        "ExternalService"
+      ],
+      "meaning": "主动向外发请求"
+    }
+  },
+  "entities": [
+    {
+      "id": "ziwei",
+      "class": "Service",
+      "label": "紫微十三维观照",
+      "summary": "按公历日期、已确认的时辰和资料分类查询已校验的历史解读；加载十三维 Skill 与原文证据，只读资料，不保存出生信息，不自行排盘；用户另外同意后，可让模型把某一维资料讲成白话，发给模型的只有资料正文和问题。",
+      "url": "/ziwei/",
+      "observe": ["ServiceHealth"],
+      "unit": "ziwei",
+      "health": "http://127.0.0.1:3005/health"
+    },
+    {
+      "id": "ziwei-port",
+      "class": "Endpoint",
+      "label": "127.0.0.1:3005",
+      "summary": "紫微资料查询后端，仅监听本机。",
+      "observe": ["Ports"],
+      "port": 3005,
+      "scope": "loopback"
+    },
+    {
+      "id": "ziwei-web-route",
+      "class": "Endpoint",
+      "label": "/ziwei/",
+      "summary": "紫微输入与十三维资料页面，由独立后端提供，不依赖静态站整站同步。",
+      "path": "/ziwei/"
+    },
+    {
+      "id": "ziwei-api-route",
+      "class": "Endpoint",
+      "label": "/api/ziwei/",
+      "summary": "查询使用POST，关闭访问日志；有限流、正文大小限制，不保存出生信息。",
+      "path": "/api/ziwei/"
+    },
+    {
+      "id": "ziwei-data",
+      "class": "DataStore",
+      "label": "紫微只读资料与Skill",
+      "summary": "全量去重案例库、十三维Skill及180188条候选原文证据；服务只读，不能作为经过科学验证的命理规则。",
+      "path": "/srv/data/ziwei"
+    },
+    {
+      "id": "owner",
+      "class": "Person",
+      "label": "刘浩",
+      "aliases": [
+        "主人",
+        "作者",
+        "站长"
+      ],
+      "summary": "本站主人，中国农业大学计算机技术硕士在读（2027 届），方向 Agent 应用开发。",
+      "url": "/resume/"
+    },
+    {
+      "id": "visitor",
+      "class": "Person",
+      "label": "访客",
+      "aliases": [
+        "你",
+        "用户"
+      ],
+      "summary": "正在用这个终端的人。能提问、能用只读 shell，没有任何写权限。"
+    },
+    {
+      "id": "srv-guide",
+      "class": "SoftwareAgent",
+      "label": "srv-guide",
+      "aliases": [
+        "导游",
+        "我",
+        "导游 agent"
+      ],
+      "summary": "住在这台服务器上的只读导游 agent，回答由 DeepSeek 生成，事实来自工具。",
+      "url": "/guide/"
+    },
+    {
+      "id": "server",
+      "class": "Machine",
+      "label": "腾讯云服务器",
+      "aliases": [
+        "服务器",
+        "这台机器"
+      ],
+      "summary": "腾讯云北京，OpenCloudOS 9.6，4 核、约 4 GB 内存、40 GB 系统盘。",
+      "observe": [
+        "SystemInfo",
+        "Ports"
+      ]
+    },
+    {
+      "id": "nginx",
+      "class": "Service",
+      "label": "nginx",
+      "summary": "唯一面向公网的服务：静态站点、TLS、CSP、限流、反向代理。",
+      "observe": [
+        "ServiceHealth"
+      ],
+      "unit": "nginx",
+      "health": "http://127.0.0.1/healthz"
+    },
+    {
+      "id": "personal-demo",
+      "class": "Service",
+      "label": "personal-demo",
+      "summary": "无依赖的 Node.js 示例后端，提供 /health。",
+      "observe": [
+        "ServiceHealth"
+      ],
+      "unit": "personal-demo",
+      "health": "http://127.0.0.1:3000/health"
+    },
+    {
+      "id": "server-guide",
+      "class": "Service",
+      "label": "server-guide",
+      "summary": "srv-guide 的后端进程：零依赖 Node.js 24，SSE 流式输出，以 deploy 用户运行，内存上限 256M。",
+      "observe": [
+        "ServiceHealth"
+      ],
+      "unit": "server-guide",
+      "health": "self"
+    },
+    {
+      "id": "certbot-timer",
+      "class": "Service",
+      "label": "personal-certbot-renew.timer",
+      "summary": "每天两次检查 Let's Encrypt IP 证书是否需要续期。",
+      "observe": [
+        "ServiceHealth"
+      ],
+      "unit": "personal-certbot-renew.timer",
+      "short": "certbot 续期"
+    },
+    {
+      "id": "docker",
+      "class": "Service",
+      "label": "docker",
+      "summary": "已安装，默认不运行容器；deploy 不在 docker 组。它的运行时 containerd 会在本机临时端口上开一个 gRPC 接口。",
+      "observe": [
+        "ServiceHealth"
+      ],
+      "unit": "docker",
+      "ephemeralPorts": true
+    },
+    {
+      "id": "sshd",
+      "class": "Service",
+      "label": "sshd",
+      "summary": "管理入口，只允许密钥登录。",
+      "observe": [
+        "ServiceHealth"
+      ],
+      "unit": "sshd"
+    },
+    {
+      "id": "ep-22",
+      "class": "Endpoint",
+      "label": "0.0.0.0:22",
+      "summary": "SSH，公网。",
+      "observe": [
+        "Ports"
+      ],
+      "port": 22,
+      "scope": "public"
+    },
+    {
+      "id": "ep-80",
+      "class": "Endpoint",
+      "label": "0.0.0.0:80",
+      "summary": "HTTP，公网，跳转到 HTTPS。",
+      "observe": [
+        "Ports"
+      ],
+      "port": 80,
+      "scope": "public"
+    },
+    {
+      "id": "ep-443",
+      "class": "Endpoint",
+      "label": "0.0.0.0:443",
+      "summary": "HTTPS，公网。",
+      "observe": [
+        "Ports"
+      ],
+      "port": 443,
+      "scope": "public"
+    },
+    {
+      "id": "ep-3000",
+      "class": "Endpoint",
+      "label": "127.0.0.1:3000",
+      "summary": "personal-demo，只听本机。",
+      "observe": [
+        "Ports"
+      ],
+      "port": 3000,
+      "scope": "loopback"
+    },
+    {
+      "id": "ep-3003",
+      "class": "Endpoint",
+      "label": "127.0.0.1:3003",
+      "summary": "server-guide，只听本机。",
+      "observe": [
+        "Ports"
+      ],
+      "port": 3003,
+      "scope": "loopback"
+    },
+    {
+      "id": "route-api-demo",
+      "class": "Endpoint",
+      "label": "/api/demo/",
+      "summary": "Nginx 把它转发给 personal-demo。",
+      "path": "/api/demo/"
+    },
+    {
+      "id": "route-api-guide",
+      "class": "Endpoint",
+      "label": "/api/guide/",
+      "summary": "Nginx 把它转发给 server-guide（关闭缓冲以支持 SSE）。",
+      "path": "/api/guide/"
+    },
+    {
+      "id": "proj-text2sql",
+      "class": "Project",
+      "label": "Text-to-SQL 可控数据合成方法研究",
+      "aliases": [
+        "Text-to-SQL",
+        "数据合成"
+      ],
+      "summary": "2025.09 - 2026.05。SQL 复杂度度量与分布调控、多样性筛选、QLoRA 微调，在 Spider Dev 上做基线对比。页面只公开了方法与流程，没有公开结果数字。",
+      "url": "/projects/"
+    },
+    {
+      "id": "proj-tabular",
+      "class": "Project",
+      "label": "表格基础模型的上下文检索机制优化",
+      "aliases": [
+        "表格基础模型",
+        "上下文检索",
+        "TabPFN"
+      ],
+      "summary": "2025.05 - 2026.02。面向 TabPFN-V2、LimiX 设计兼顾相关性与多样性的上下文检索，在 CC18、CTR23 上做对比与消融。页面没有公开结果数字。",
+      "url": "/projects/"
+    },
+    {
+      "id": "m-tools",
+      "class": "Mechanism",
+      "label": "tools.mjs 只实现读操作",
+      "summary": "工具执行器里根本没有写文件、执行命令或发网络请求（本机健康检查除外）的代码路径。"
+    },
+    {
+      "id": "m-vfs",
+      "class": "Mechanism",
+      "label": "内存虚拟文件系统",
+      "summary": "启动时把公开资料读进内存，路径解析最多退到虚拟根目录，碰不到真实磁盘。"
+    },
+    {
+      "id": "m-shell",
+      "class": "Mechanism",
+      "label": "shell.mjs 沙盒",
+      "summary": "! 命令全部用 JS 模拟；含 | ; & > < $ 反引号的输入直接拒绝。"
+    },
+    {
+      "id": "m-systemd",
+      "class": "Mechanism",
+      "label": "systemd 沙箱",
+      "summary": "每个 Node 后端都以 deploy 用户运行：NoNewPrivileges、ProtectSystem=strict、ProtectHome，ReadWritePaths 只放行自己的数据目录，再加 MemoryMax / CPUQuota 上限（server-guide 256M，market-watch 192M）。"
+    },
+    {
+      "id": "m-bind",
+      "class": "Mechanism",
+      "label": "只绑定 127.0.0.1",
+      "summary": "后端 HOST=127.0.0.1，公网只能经过 Nginx。可用 Ports 工具实测。"
+    },
+    {
+      "id": "m-nginx",
+      "class": "Mechanism",
+      "label": "Nginx 限流与 CSP",
+      "summary": "personal_api 限流区、请求体 32k 上限、CSP default-src 'self'。"
+    },
+    {
+      "id": "m-quota",
+      "class": "Mechanism",
+      "label": "server.mjs 额度与限长",
+      "summary": "每 IP 每天轮数、全站每日 token 预算、输入 1000 字、单轮 8 步、并发上限。"
+    },
+    {
+      "id": "m-site-index",
+      "class": "Mechanism",
+      "label": "site.mjs 页面白名单",
+      "summary": "网站索引只收公开页面：跳过 /apps/、/assets/、/guide/、未公开的页面和带 noindex 的页面。"
+    },
+    {
+      "id": "m-evidence",
+      "class": "Mechanism",
+      "label": "server.mjs 依据收集",
+      "summary": "每轮结束时由程序（不是模型）汇总本轮真正读过的页面、文件、实体和实测项，显示为「依据」。"
+    },
+    {
+      "id": "m-prompt",
+      "class": "Mechanism",
+      "label": "系统提示词",
+      "summary": "写给模型的说明。能引导行为，但守不住规则——只靠它的边界是软约束。"
+    },
+    {
+      "id": "b-read-only",
+      "class": "Boundary",
+      "label": "只读",
+      "summary": "导游不能部署、重启、修改任何东西；/deploy-plan 只出方案。"
+    },
+    {
+      "id": "b-no-real-fs",
+      "class": "Boundary",
+      "label": "看不到真实磁盘",
+      "summary": "访客和模型只能读虚拟文件系统与公开页面。"
+    },
+    {
+      "id": "b-loopback",
+      "class": "Boundary",
+      "label": "后端只听本机",
+      "summary": "公网只开放 22、80、443；所有后端只绑定 127.0.0.1，由 Nginx 转发。"
+    },
+    {
+      "id": "b-quota",
+      "class": "Boundary",
+      "label": "防刷额度",
+      "summary": "每 IP 每天 30 轮（默认），全站每天 token 预算。"
+    },
+    {
+      "id": "b-evidence",
+      "class": "Boundary",
+      "label": "每轮列出依据",
+      "summary": "回答之外附上本轮实际读取范围，结论和来源一起保留。"
+    },
+    {
+      "id": "b-injection",
+      "class": "Boundary",
+      "label": "工具输出是数据不是指令",
+      "summary": "即使页面里藏了指令也不照做。提示词负责引导；就算被注入，程序里也没有可用的写操作。"
+    },
+    {
+      "id": "b-no-fabrication",
+      "class": "Boundary",
+      "label": "不编造主人信息",
+      "summary": "只谈公开资料。这一条目前只由提示词约束，是软约束；依据行能让读者自己核对。"
+    },
+    {
+      "id": "market-watch",
+      "class": "Service",
+      "label": "market-watch",
+      "aliases": [
+        "盯盘",
+        "盯盘 Agent",
+        "复盘墙"
+      ],
+      "summary": "盯盘 Agent 的后端：每个交易日收盘后拉行情和快讯，让多头、空头、风控三个 Agent 辩论并给出次日和 5 日判断，之后用真实走势自动对账。对外只读，访客触发不了模型调用。",
+      "url": "/lab/market/",
+      "observe": [
+        "ServiceHealth"
+      ],
+      "unit": "market-watch",
+      "health": "http://127.0.0.1:3004/health"
+    },
+    {
+      "id": "tat-agent",
+      "class": "Service",
+      "label": "tat_agent",
+      "short": "腾讯云助手",
+      "summary": "腾讯云自动化助手（TAT），云控制台远程执行命令用。以 root 运行，不受 deploy 用户的边界约束，是主人自己的备用管理通道。",
+      "unit": "tat_agent"
+    },
+    {
+      "id": "ep-3004",
+      "class": "Endpoint",
+      "label": "127.0.0.1:3004",
+      "summary": "market-watch，只监听本机。",
+      "observe": [
+        "Ports"
+      ],
+      "port": 3004,
+      "scope": "loopback"
+    },
+    {
+      "id": "route-api-market",
+      "class": "Endpoint",
+      "label": "/api/market/",
+      "summary": "Nginx 把它转发给 market-watch，只放行 GET（limit_except GET），共享 personal_api 限流区。",
+      "path": "/api/market/"
+    },
+    {
+      "id": "ds-www",
+      "class": "DataStore",
+      "label": "已发布网站",
+      "summary": "静态站点的线上目录。只有推送即部署会整站同步它；Nginx 和 server-guide 只读。",
+      "path": "/srv/www/personal"
+    },
+    {
+      "id": "ds-demo",
+      "class": "DataStore",
+      "label": "示例数据",
+      "summary": "personal-demo 的数据目录（目前是空的）。",
+      "path": "/srv/data/demo"
+    },
+    {
+      "id": "ds-guide",
+      "class": "DataStore",
+      "label": "导游数据",
+      "summary": "每日额度、对话日志（IP 只存加盐哈希）、模型 Key，以及部署流水线留下的上线记录和漂移报告。",
+      "path": "/srv/data/server-guide"
+    },
+    {
+      "id": "ds-market",
+      "class": "DataStore",
+      "label": "盯盘数据",
+      "summary": "每天的行情快照、三方辩论、判断和对账结果，以及 token 用量。",
+      "path": "/srv/data/market-watch"
+    },
+    {
+      "id": "ext-deepseek",
+      "class": "ExternalService",
+      "label": "DeepSeek API",
+      "summary": "大模型接口（Anthropic 兼容协议）。导游回答问题、盯盘辩论都调用它；Key 只在服务器的 guide.env 里。",
+      "host": "api.deepseek.com"
+    },
+    {
+      "id": "ext-eastmoney",
+      "class": "ExternalService",
+      "label": "东方财富",
+      "summary": "日 K 行情和 7×24 快讯的公开接口，盯盘每个交易日收盘后读一次。只发请求参数，不发任何本站数据。",
+      "host": "eastmoney.com"
+    },
+    {
+      "id": "ext-letsencrypt",
+      "class": "ExternalService",
+      "label": "Let's Encrypt",
+      "summary": "签发这台服务器 IP 证书的 CA；certbot 续期时调用。",
+      "host": "acme-v02.api.letsencrypt.org"
+    },
+    {
+      "id": "push-deploy",
+      "class": "Pipeline",
+      "label": "推送即部署",
+      "aliases": [
+        "git push",
+        "部署流水线",
+        "release.sh"
+      ],
+      "summary": "主人 git push 到服务器上的裸仓库后，pre-receive 跑测试和构建，post-receive 备份、同步静态站、按需同步后端并重启、做健康检查，失败自动回滚。全程以 deploy 用户运行。"
+    },
+    {
+      "id": "m-market-api",
+      "class": "Mechanism",
+      "label": "market-watch 只有 GET 路由",
+      "summary": "server.mjs 只实现 GET；Nginx 对 /api/market/ 加了 limit_except GET。辩论只由服务内部的收盘定时器触发。"
+    },
+    {
+      "id": "m-token-budget",
+      "class": "Mechanism",
+      "label": "market-watch 每日 token 上限",
+      "summary": "每次调用前检查当天用量，超过 MARKET_DAILY_TOKENS 就停下，只记录行情和基线。"
+    },
+    {
+      "id": "m-sudoers",
+      "class": "Mechanism",
+      "label": "sudoers 只放行重启",
+      "summary": "/etc/sudoers.d/deploy-restart：deploy 只能 systemctl restart 四个后端，别的 sudo 都不行。"
+    },
+    {
+      "id": "m-precheck",
+      "class": "Mechanism",
+      "label": "pre-receive 测试",
+      "summary": "博客构建器和各后端的测试不过，推送直接被拒绝，服务器上的 main 不会前进。"
+    },
+    {
+      "id": "m-rollback",
+      "class": "Mechanism",
+      "label": "健康检查与回滚",
+      "summary": "重启后 10 秒内 /health 不通，或公网路径不是 200，就恢复备份的旧版本。"
+    },
+    {
+      "id": "b-no-visitor-llm",
+      "class": "Boundary",
+      "label": "访客触发不了盯盘的模型调用",
+      "summary": "复盘墙只读，所有判断都是收盘后服务自己跑出来的。"
+    },
+    {
+      "id": "b-token-budget",
+      "class": "Boundary",
+      "label": "盯盘每日 token 预算",
+      "summary": "默认每天 40 万 token，超了当天就不再辩论。"
+    },
+    {
+      "id": "b-write-scope",
+      "class": "Boundary",
+      "label": "只能写自己的数据目录",
+      "summary": "后端进程看到的整个文件系统都是只读的，只有 ReadWritePaths 里登记的目录可写。"
+    },
+    {
+      "id": "b-deploy-least",
+      "class": "Boundary",
+      "label": "部署用户最小权限",
+      "summary": "推送能改网站和后端代码、能重启后端；改 systemd 单元、Nginx 配置、sudo 规则仍然需要 root 手动执行。"
+    },
+    {
+      "id": "b-verified-release",
+      "class": "Boundary",
+      "label": "坏版本上不了线",
+      "summary": "测试不过不收，上线后健康检查不过就回滚。"
+    },
+    {
+      "id": "knock-timer",
+      "class": "Service",
+      "label": "server-knock.timer",
+      "summary": "每小时读一次 Nginx 和 SSH 日志，把扫描器、爆破这些不请自来的敲门按天数成类别和次数；IP 只在内存里去重，一个都不落盘。",
+      "observe": [
+        "ServiceHealth"
+      ],
+      "unit": "server-knock.timer",
+      "short": "敲门声采集",
+      "url": "/lab/knock/"
+    },
+    {
+      "id": "ds-logs",
+      "class": "DataStore",
+      "label": "Nginx / SSH 日志",
+      "summary": "/var/log/nginx 的访问日志和 /var/log/secure，属于 root；只有敲门声采集靠一个只读能力看得到。",
+      "path": "/var/log"
+    },
+    {
+      "id": "ds-knock",
+      "class": "DataStore",
+      "label": "敲门声数据",
+      "summary": "knock.json：最近 120 天每天的敲门总数、类别、时段、客户端家族和少量白名单样本，不含 IP。",
+      "path": "/srv/data/knock"
+    },
+    {
+      "id": "m-knock",
+      "class": "Mechanism",
+      "label": "knock.mjs 只存计数",
+      "summary": "IP 只用来在内存里数“多少个来源”；样本只取识别出类别的路径并过一遍字符白名单；本机账号名、登录成功过的来源、不公开的路径都不计入。"
+    },
+    {
+      "id": "b-no-ip",
+      "class": "Boundary",
+      "label": "敲门声不留 IP",
+      "summary": "公开的只有按天汇总的次数和类别，磁盘上也不存任何来源地址。"
+    }
+  ],
+  "edges": [
+    { "source": "ziwei", "target": "server", "relation": "runs_on" },
+    { "source": "ziwei", "target": "ziwei-port", "relation": "listens_on" },
+    { "source": "ziwei-web-route", "target": "ziwei", "relation": "proxies_to" },
+    { "source": "ziwei-api-route", "target": "ziwei", "relation": "proxies_to" },
+    { "source": "ziwei", "target": "ziwei-data", "relation": "reads_data" },
+    { "source": "ziwei", "target": "b-loopback", "relation": "constrained_by" },
+    { "source": "push-deploy", "target": "ziwei", "relation": "deploys" },
+    {
+      "source": "srv-guide",
+      "target": "server-guide",
+      "relation": "implemented_by"
+    },
+    {
+      "source": "srv-guide",
+      "target": "server",
+      "relation": "runs_on"
+    },
+    {
+      "source": "owner",
+      "target": "server",
+      "relation": "maintains"
+    },
+    {
+      "source": "owner",
+      "target": "srv-guide",
+      "relation": "maintains"
+    },
+    {
+      "source": "owner",
+      "target": "proj-text2sql",
+      "relation": "works_on"
+    },
+    {
+      "source": "owner",
+      "target": "proj-tabular",
+      "relation": "works_on"
+    },
+    {
+      "source": "nginx",
+      "target": "server",
+      "relation": "runs_on"
+    },
+    {
+      "source": "personal-demo",
+      "target": "server",
+      "relation": "runs_on"
+    },
+    {
+      "source": "server-guide",
+      "target": "server",
+      "relation": "runs_on"
+    },
+    {
+      "source": "certbot-timer",
+      "target": "server",
+      "relation": "runs_on"
+    },
+    {
+      "source": "docker",
+      "target": "server",
+      "relation": "runs_on"
+    },
+    {
+      "source": "sshd",
+      "target": "server",
+      "relation": "runs_on"
+    },
+    {
+      "source": "sshd",
+      "target": "ep-22",
+      "relation": "listens_on"
+    },
+    {
+      "source": "nginx",
+      "target": "ep-80",
+      "relation": "listens_on"
+    },
+    {
+      "source": "nginx",
+      "target": "ep-443",
+      "relation": "listens_on"
+    },
+    {
+      "source": "personal-demo",
+      "target": "ep-3000",
+      "relation": "listens_on"
+    },
+    {
+      "source": "server-guide",
+      "target": "ep-3003",
+      "relation": "listens_on"
+    },
+    {
+      "source": "nginx",
+      "target": "route-api-demo",
+      "relation": "serves"
+    },
+    {
+      "source": "nginx",
+      "target": "route-api-guide",
+      "relation": "serves"
+    },
+    {
+      "source": "route-api-demo",
+      "target": "personal-demo",
+      "relation": "proxies_to"
+    },
+    {
+      "source": "route-api-guide",
+      "target": "server-guide",
+      "relation": "proxies_to"
+    },
+    {
+      "source": "proj-text2sql",
+      "target": "page:/projects/",
+      "relation": "published_as"
+    },
+    {
+      "source": "proj-tabular",
+      "target": "page:/projects/",
+      "relation": "published_as"
+    },
+    {
+      "source": "page:/resume/",
+      "target": "owner",
+      "relation": "describes"
+    },
+    {
+      "source": "page:/",
+      "target": "owner",
+      "relation": "describes"
+    },
+    {
+      "source": "page:/lab/",
+      "target": "srv-guide",
+      "relation": "describes"
+    },
+    {
+      "source": "srv-guide",
+      "target": "b-read-only",
+      "relation": "constrained_by"
+    },
+    {
+      "source": "srv-guide",
+      "target": "b-no-real-fs",
+      "relation": "constrained_by"
+    },
+    {
+      "source": "srv-guide",
+      "target": "b-quota",
+      "relation": "constrained_by"
+    },
+    {
+      "source": "srv-guide",
+      "target": "b-evidence",
+      "relation": "constrained_by"
+    },
+    {
+      "source": "srv-guide",
+      "target": "b-injection",
+      "relation": "constrained_by"
+    },
+    {
+      "source": "srv-guide",
+      "target": "b-no-fabrication",
+      "relation": "constrained_by"
+    },
+    {
+      "source": "server-guide",
+      "target": "b-loopback",
+      "relation": "constrained_by"
+    },
+    {
+      "source": "personal-demo",
+      "target": "b-loopback",
+      "relation": "constrained_by"
+    },
+    {
+      "source": "visitor",
+      "target": "b-read-only",
+      "relation": "constrained_by"
+    },
+    {
+      "source": "visitor",
+      "target": "b-quota",
+      "relation": "constrained_by"
+    },
+    {
+      "source": "b-read-only",
+      "target": "m-tools",
+      "relation": "enforced_by"
+    },
+    {
+      "source": "b-read-only",
+      "target": "m-shell",
+      "relation": "enforced_by"
+    },
+    {
+      "source": "b-read-only",
+      "target": "m-systemd",
+      "relation": "enforced_by"
+    },
+    {
+      "source": "b-no-real-fs",
+      "target": "m-vfs",
+      "relation": "enforced_by"
+    },
+    {
+      "source": "b-no-real-fs",
+      "target": "m-systemd",
+      "relation": "enforced_by"
+    },
+    {
+      "source": "b-loopback",
+      "target": "m-bind",
+      "relation": "enforced_by"
+    },
+    {
+      "source": "b-quota",
+      "target": "m-quota",
+      "relation": "enforced_by"
+    },
+    {
+      "source": "b-quota",
+      "target": "m-nginx",
+      "relation": "enforced_by"
+    },
+    {
+      "source": "b-evidence",
+      "target": "m-evidence",
+      "relation": "enforced_by"
+    },
+    {
+      "source": "b-injection",
+      "target": "m-prompt",
+      "relation": "enforced_by"
+    },
+    {
+      "source": "b-injection",
+      "target": "m-tools",
+      "relation": "enforced_by"
+    },
+    {
+      "source": "b-no-fabrication",
+      "target": "m-prompt",
+      "relation": "enforced_by"
+    },
+    {
+      "source": "srv-guide",
+      "target": "tool-calling",
+      "relation": "embodies",
+      "note": "模型提出工具调用，程序执行并把结果喂回，界面逐步展示"
+    },
+    {
+      "source": "srv-guide",
+      "target": "evidence-first",
+      "relation": "embodies",
+      "note": "每轮的「依据」行由程序汇总，不靠模型自述"
+    },
+    {
+      "source": "srv-guide",
+      "target": "ontology",
+      "relation": "embodies",
+      "note": "就是这张世界模型：类、关系、domain/range 校验、来源标注"
+    },
+    {
+      "source": "srv-guide",
+      "target": "human-in-the-loop",
+      "relation": "embodies",
+      "note": "/deploy-plan 只出方案，执行留给主人"
+    },
+    {
+      "source": "visitor",
+      "target": "ep-443",
+      "relation": "visits"
+    },
+    {
+      "source": "owner",
+      "target": "ep-22",
+      "relation": "visits",
+      "note": "只允许密钥登录"
+    },
+    {
+      "source": "owner",
+      "target": "push-deploy",
+      "relation": "maintains"
+    },
+    {
+      "source": "sshd",
+      "target": "push-deploy",
+      "relation": "triggers",
+      "note": "git push 走 SSH，服务器上的钩子以 deploy 用户运行"
+    },
+    {
+      "source": "push-deploy",
+      "target": "server",
+      "relation": "runs_on"
+    },
+    {
+      "source": "market-watch",
+      "target": "server",
+      "relation": "runs_on"
+    },
+    {
+      "source": "tat-agent",
+      "target": "server",
+      "relation": "runs_on"
+    },
+    {
+      "source": "market-watch",
+      "target": "ep-3004",
+      "relation": "listens_on"
+    },
+    {
+      "source": "nginx",
+      "target": "route-api-market",
+      "relation": "serves"
+    },
+    {
+      "source": "route-api-market",
+      "target": "market-watch",
+      "relation": "proxies_to"
+    },
+    {
+      "source": "nginx",
+      "target": "ds-www",
+      "relation": "reads_data",
+      "note": "静态页面直接从这里返回"
+    },
+    {
+      "source": "server-guide",
+      "target": "ds-www",
+      "relation": "reads_data",
+      "note": "SiteSearch / ReadPage 只读已发布的页面"
+    },
+    {
+      "source": "server-guide",
+      "target": "ds-guide",
+      "relation": "writes"
+    },
+    {
+      "source": "server-guide",
+      "target": "ext-deepseek",
+      "relation": "calls"
+    },
+    {
+      "source": "personal-demo",
+      "target": "ds-demo",
+      "relation": "writes"
+    },
+    {
+      "source": "market-watch",
+      "target": "ds-market",
+      "relation": "writes"
+    },
+    {
+      "source": "market-watch",
+      "target": "ext-deepseek",
+      "relation": "calls",
+      "note": "只在收盘后的辩论里调用"
+    },
+    {
+      "source": "market-watch",
+      "target": "ext-eastmoney",
+      "relation": "calls"
+    },
+    {
+      "source": "certbot-timer",
+      "target": "ext-letsencrypt",
+      "relation": "calls"
+    },
+    {
+      "source": "push-deploy",
+      "target": "ds-www",
+      "relation": "writes",
+      "note": "rsync --delete，保留运行时写入的目录"
+    },
+    {
+      "source": "push-deploy",
+      "target": "ds-guide",
+      "relation": "writes",
+      "note": "上线记录和漂移报告"
+    },
+    {
+      "source": "push-deploy",
+      "target": "personal-demo",
+      "relation": "deploys"
+    },
+    {
+      "source": "push-deploy",
+      "target": "server-guide",
+      "relation": "deploys"
+    },
+    {
+      "source": "push-deploy",
+      "target": "market-watch",
+      "relation": "deploys"
+    },
+    {
+      "source": "market-watch",
+      "target": "b-loopback",
+      "relation": "constrained_by"
+    },
+    {
+      "source": "market-watch",
+      "target": "b-no-visitor-llm",
+      "relation": "constrained_by"
+    },
+    {
+      "source": "market-watch",
+      "target": "b-token-budget",
+      "relation": "constrained_by"
+    },
+    {
+      "source": "personal-demo",
+      "target": "b-write-scope",
+      "relation": "constrained_by"
+    },
+    {
+      "source": "server-guide",
+      "target": "b-write-scope",
+      "relation": "constrained_by"
+    },
+    {
+      "source": "market-watch",
+      "target": "b-write-scope",
+      "relation": "constrained_by"
+    },
+    {
+      "source": "visitor",
+      "target": "b-no-visitor-llm",
+      "relation": "constrained_by"
+    },
+    {
+      "source": "push-deploy",
+      "target": "b-deploy-least",
+      "relation": "constrained_by"
+    },
+    {
+      "source": "push-deploy",
+      "target": "b-verified-release",
+      "relation": "constrained_by"
+    },
+    {
+      "source": "b-no-visitor-llm",
+      "target": "m-market-api",
+      "relation": "enforced_by"
+    },
+    {
+      "source": "b-no-visitor-llm",
+      "target": "m-nginx",
+      "relation": "enforced_by"
+    },
+    {
+      "source": "b-token-budget",
+      "target": "m-token-budget",
+      "relation": "enforced_by"
+    },
+    {
+      "source": "b-write-scope",
+      "target": "m-systemd",
+      "relation": "enforced_by"
+    },
+    {
+      "source": "b-deploy-least",
+      "target": "m-sudoers",
+      "relation": "enforced_by"
+    },
+    {
+      "source": "b-deploy-least",
+      "target": "m-systemd",
+      "relation": "enforced_by"
+    },
+    {
+      "source": "b-verified-release",
+      "target": "m-precheck",
+      "relation": "enforced_by"
+    },
+    {
+      "source": "b-verified-release",
+      "target": "m-rollback",
+      "relation": "enforced_by"
+    },
+    {
+      "source": "knock-timer",
+      "target": "server",
+      "relation": "runs_on"
+    },
+    {
+      "source": "knock-timer",
+      "target": "ds-logs",
+      "relation": "reads_data",
+      "note": "CAP_DAC_READ_SEARCH，只读"
+    },
+    {
+      "source": "knock-timer",
+      "target": "ds-knock",
+      "relation": "writes"
+    },
+    {
+      "source": "server-guide",
+      "target": "ds-knock",
+      "relation": "reads_data",
+      "note": "GET /api/guide/knock 只读汇总"
+    },
+    {
+      "source": "knock-timer",
+      "target": "b-no-ip",
+      "relation": "constrained_by"
+    },
+    {
+      "source": "knock-timer",
+      "target": "b-write-scope",
+      "relation": "constrained_by"
+    },
+    {
+      "source": "b-no-ip",
+      "target": "m-knock",
+      "relation": "enforced_by"
+    },
+    {
+      "source": "b-no-ip",
+      "target": "m-systemd",
+      "relation": "enforced_by"
+    }
+  ]
+}

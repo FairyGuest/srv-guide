@@ -1,0 +1,14 @@
+{
+  "name": "srv-guide",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A read-only, Claude-Code-style tour agent that lives on a personal server",
+  "license": "MIT",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node dev.mjs",
+    "test": "node --test"
+  }
+}

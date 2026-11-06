@@ -1,0 +1,14 @@
+{
+  "note": "示例：不公开的服务。复制成 private/hidden.json 并换成你自己的（hidden.json 已在 .gitignore 里）。这些实体不进导游能读的 vfs，只有部署时的漂移对账和活本体的内部采集会并进本体（Ontology includeHidden）。",
+  "entities": [
+    { "id": "personal-chat", "class": "Service", "label": "personal-chat", "summary": "不对导游开放的私有服务。", "observe": ["ServiceHealth"], "unit": "personal-chat", "health": "http://127.0.0.1:3002/health" },
+    { "id": "ep-3002", "class": "Endpoint", "label": "127.0.0.1:3002", "port": 3002, "scope": "loopback" },
+    { "id": "route-api-chat", "class": "Endpoint", "label": "/api/chat/", "path": "/api/chat/" }
+  ],
+  "edges": [
+    { "source": "personal-chat", "target": "server", "relation": "runs_on" },
+    { "source": "personal-chat", "target": "ep-3002", "relation": "listens_on" },
+    { "source": "nginx", "target": "route-api-chat", "relation": "serves" },
+    { "source": "route-api-chat", "target": "personal-chat", "relation": "proxies_to" }
+  ]
+}
